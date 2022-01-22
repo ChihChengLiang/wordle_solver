@@ -127,7 +127,7 @@ def random_round():
     estimator = Estimator(words)
 
     game = Game.from_random(words)
-    print("answer", game.answer)
+    print("#    ", game.answer)
     while not game.is_ended:
         (guess, prob) = estimator.mle_estimate()
         attempt = game.guess(guess)
@@ -155,8 +155,9 @@ def try_all_word_list():
 
 
 if __name__ == "__main__":
-    # random_round()
-    try_all_word_list()
+    for i in range(5):
+        random_round()
+    # try_all_word_list()
 
 
 # Heuristics:
