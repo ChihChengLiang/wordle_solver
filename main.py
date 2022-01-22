@@ -135,8 +135,28 @@ def random_round():
         estimator.update(attempt)
 
 
+def try_all_word_list():
+    words = load_word_list()
+
+    attempts_count = []
+    result_count = []
+    for word in words:
+        game = Game(word)
+        estimator = Estimator(words)
+        while not game.is_ended:
+            (guess, prob) = estimator.mle_estimate()
+            attempt = game.guess(guess)
+            estimator.update(attempt)
+        attempts_count.append(len(game.attempts))
+        result_count.append(game.attempts[-1].is_success)
+    print("Total games", len(words))
+    print("Avg attempts", sum(attempts_count) / len(attempts_count))
+    print("Failing attempts", len(result_count) - sum(result_count))
+
+
 if __name__ == "__main__":
-    random_round()
+    # random_round()
+    try_all_word_list()
 
 
 # Heuristics:
