@@ -41,9 +41,13 @@ class Game:
     answer: str
     attempts: List[Attempt]
 
-    def __init__(self, word_list: List[str]) -> None:
-        self.answer = choice(word_list)
+    def __init__(self, answer: str) -> None:
+        self.answer = answer
         self.attempts = []
+
+    @classmethod
+    def from_random(cls, word_list: List[str]):
+        return cls(choice(word_list))
 
     def guess(self, word: str) -> List[Tuple[str, str]]:
         attempt = Attempt(word, self.answer)
@@ -118,17 +122,21 @@ class Estimator:
         return top, word_dict[top]
 
 
-if __name__ == "__main__":
+def random_round():
     words = load_word_list()
     estimator = Estimator(words)
 
-    game = Game(words)
+    game = Game.from_random(words)
     print("answer", game.answer)
     while not game.is_ended:
         (guess, prob) = estimator.mle_estimate()
         attempt = game.guess(guess)
         print(attempt, estimator.search_size, "\t", prob)
         estimator.update(attempt)
+
+
+if __name__ == "__main__":
+    random_round()
 
 
 # Heuristics:
