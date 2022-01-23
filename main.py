@@ -208,11 +208,11 @@ def bench_starter_word():
         )
         not_in_list = "*" if starter not in words else ""
         print(
-            not_in_list,
             starter,
-            "avg remaining",
+            not_in_list,
+            "First round remaining: avg",
             avg_remaining,
-            "std remaining",
+            "std",
             std_remaining,
         )
 
