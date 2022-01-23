@@ -1,6 +1,7 @@
 from typing import Sequence, Dict, List, Tuple
 from random import choice
 from enum import Enum, auto
+from abc import ABC, abstractmethod
 
 NUM_ALPHABET = 5
 
@@ -82,7 +83,17 @@ def build_freq_table(word_list: Sequence[str]) -> Dict[int, Dict[str, float]]:
     return position
 
 
-class Estimator:
+class Estimator(ABC):
+    @abstractmethod
+    def estimate(self) -> str:
+        ...
+
+    @abstractmethod
+    def update(self) -> str:
+        ...
+
+
+class MaxLikelihood(Estimator):
     word_list: List[str]
     # position -> alphabet -> prob.
     freq_table: Dict[int, Dict[str, float]]
@@ -111,7 +122,7 @@ class Estimator:
     def search_size(self):
         return len(self.word_list)
 
-    def mle_estimate(self):
+    def estimate(self):
         word_dict = dict()
         for word in self.word_list:
             prob = 1
@@ -128,7 +139,7 @@ def play(game: Game, estimator: Estimator, verbose=False):
     if verbose:
         print("#    ", game.answer, "    ", estimator.search_size)
     while not game.is_ended:
-        (guess, prob) = estimator.mle_estimate()
+        (guess, prob) = estimator.estimate()
         attempt = game.guess(guess)
         estimator.update(attempt)
         if verbose:
@@ -137,7 +148,7 @@ def play(game: Game, estimator: Estimator, verbose=False):
 
 def random_round():
     words = load_word_list()
-    estimator = Estimator(words)
+    estimator = MaxLikelihood(words)
     game = Game.from_random(words)
     play(game, estimator, verbose=True)
 
@@ -145,7 +156,7 @@ def random_round():
 def deterministic(questions: Sequence[str]):
     for answer in questions:
         words = load_word_list()
-        estimator = Estimator(words)
+        estimator = MaxLikelihood(words)
         game = Game(answer)
         play(game, estimator, verbose=True)
 
@@ -157,7 +168,7 @@ def try_all_word_list():
     result_count = []
     for word in words:
         game = Game(word)
-        estimator = Estimator(words)
+        estimator = MaxLikelihood(words)
         play(game, estimator)
         attempts_count.append(len(game.attempts))
         result_count.append(game.attempts[-1].is_success)
