@@ -64,6 +64,7 @@ class Game:
 
 
 def load_word_list() -> List[str]:
+    # Ref: https://gist.githubusercontent.com/cfreshman/a03ef2cba789d8cf00c08f767e0fad7b/raw/a9e55d7e0c08100ce62133a1fa0d9c4f0f542f2c/wordle-answers-alphabetical.txt
     with open("./wordle-answers-alphabetical.txt") as f:
         words = [line.strip() for line in f.readlines()]
     return words
