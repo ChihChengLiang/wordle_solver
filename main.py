@@ -99,7 +99,9 @@ class Estimator:
             elif res == Result.Grey:
                 word_list = [word for word in word_list if not (ab in word)]
             elif res == Result.Yellow:
-                word_list = [word for word in word_list if word[i] != ab]
+                word_list = [
+                    word for word in word_list if (ab in word) and word[i] != ab
+                ]
             else:
                 raise Exception("Unreachable")
         self.word_list = word_list
