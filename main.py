@@ -124,17 +124,30 @@ class Estimator:
         return top, word_dict[top]
 
 
-def random_round():
-    words = load_word_list()
-    estimator = Estimator(words)
-
-    game = Game.from_random(words)
-    print("#    ", game.answer)
+def play(game: Game, estimator: Estimator, verbose=False):
+    if verbose:
+        print("#    ", game.answer, "    ", estimator.search_size)
     while not game.is_ended:
         (guess, prob) = estimator.mle_estimate()
         attempt = game.guess(guess)
-        print(attempt, estimator.search_size, "\t", prob)
         estimator.update(attempt)
+        if verbose:
+            print(attempt, estimator.search_size, "\t", prob)
+
+
+def random_round():
+    words = load_word_list()
+    estimator = Estimator(words)
+    game = Game.from_random(words)
+    play(game, estimator, verbose=True)
+
+
+def deterministic(questions: Sequence[str]):
+    for answer in questions:
+        words = load_word_list()
+        estimator = Estimator(words)
+        game = Game(answer)
+        play(game, estimator, verbose=True)
 
 
 def try_all_word_list():
@@ -145,10 +158,7 @@ def try_all_word_list():
     for word in words:
         game = Game(word)
         estimator = Estimator(words)
-        while not game.is_ended:
-            (guess, prob) = estimator.mle_estimate()
-            attempt = game.guess(guess)
-            estimator.update(attempt)
+        play(game, estimator)
         attempts_count.append(len(game.attempts))
         result_count.append(game.attempts[-1].is_success)
     print("Total games", len(words))
@@ -157,8 +167,9 @@ def try_all_word_list():
 
 
 if __name__ == "__main__":
-    for i in range(5):
-        random_round()
+    deterministic(["glade", "bilge", "rower", "viper", "blimp"])
+    # for i in range(5):
+    #     random_round()
     # try_all_word_list()
 
 
