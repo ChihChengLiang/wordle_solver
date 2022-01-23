@@ -2,6 +2,7 @@ from typing import Sequence, Dict, List, Tuple
 from random import choice
 from enum import Enum, auto
 from abc import ABC, abstractmethod
+import math
 
 NUM_ALPHABET = 5
 
@@ -50,7 +51,7 @@ class Game:
     def from_random(cls, word_list: List[str]):
         return cls(choice(word_list))
 
-    def guess(self, word: str) -> List[Tuple[str, str]]:
+    def guess(self, word: str) -> Attempt:
         attempt = Attempt(word, self.answer)
         self.attempts.append(attempt)
         return attempt
@@ -68,6 +69,20 @@ def load_word_list() -> List[str]:
     with open("./wordle-answers-alphabetical.txt") as f:
         words = [line.strip() for line in f.readlines()]
     return words
+
+
+def eliminate(word_list: Sequence[str], attempt: Attempt) -> List[str]:
+    wl = word_list
+    for i, (ab, res) in enumerate(zip(attempt.guess, attempt.results)):
+        if res == Result.Green:
+            wl = [word for word in wl if word[i] == ab]
+        elif res == Result.Grey:
+            wl = [word for word in wl if not (ab in word)]
+        elif res == Result.Yellow:
+            wl = [word for word in wl if (ab in word) and word[i] != ab]
+        else:
+            raise Exception("Unreachable")
+    return wl
 
 
 def build_freq_table(word_list: Sequence[str]) -> Dict[int, Dict[str, float]]:
@@ -103,21 +118,9 @@ class MaxLikelihood(Estimator):
         self.word_list = word_list
         self.freq_table = build_freq_table(word_list)
 
-    def update(self, attpemt: Attempt):
-        word_list = self.word_list
-        for i, (ab, res) in enumerate(zip(attpemt.guess, attpemt.results)):
-            if res == Result.Green:
-                word_list = [word for word in word_list if word[i] == ab]
-            elif res == Result.Grey:
-                word_list = [word for word in word_list if not (ab in word)]
-            elif res == Result.Yellow:
-                word_list = [
-                    word for word in word_list if (ab in word) and word[i] != ab
-                ]
-            else:
-                raise Exception("Unreachable")
-        self.word_list = word_list
-        self.freq_table = build_freq_table(word_list)
+    def update(self, attempt: Attempt):
+        self.word_list = eliminate(self.word_list, attempt)
+        self.freq_table = build_freq_table(self.word_list)
 
     @property
     def search_size(self):
@@ -178,8 +181,45 @@ def try_all_word_list():
     print("Failing attempts", len(result_count) - sum(result_count))
 
 
+def bench_starter_word():
+    words = load_word_list()
+    starters = [
+        "saint",
+        "adieu",
+        "audio",
+        "stare",
+        "roate",
+        "roast",
+        "ratio",
+        "arise",
+        "tears",
+    ]
+    for starter in starters:
+        remaining = []
+        for word in words:
+            game = Game(word)
+            attempt = game.guess(starter)
+            rest_words = eliminate(words, attempt)
+            remaining.append(len(rest_words))
+        n = len(remaining)
+        avg_remaining = sum(remaining) / n
+        std_remaining = math.sqrt(
+            sum([(x - avg_remaining) ** 2 for x in remaining]) / n
+        )
+        not_in_list = "*" if starter not in words else ""
+        print(
+            not_in_list,
+            starter,
+            "avg remaining",
+            avg_remaining,
+            "std remaining",
+            std_remaining,
+        )
+
+
 if __name__ == "__main__":
-    deterministic(["glade", "bilge", "rower", "viper", "blimp"])
+    bench_starter_word()
+    # deterministic(["glade", "bilge", "rower", "viper", "blimp"])
     # for i in range(5):
     #     random_round()
     # try_all_word_list()
