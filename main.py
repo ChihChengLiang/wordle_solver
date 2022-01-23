@@ -103,7 +103,7 @@ class MaxLikelihood(Estimator):
         self.word_list = word_list
         self.freq_table = build_freq_table(word_list)
 
-    def update(self, attpemt: Sequence[Tuple[str, str]]):
+    def update(self, attpemt: Attempt):
         word_list = self.word_list
         for i, (ab, res) in enumerate(zip(attpemt.guess, attpemt.results)):
             if res == Result.Green:
